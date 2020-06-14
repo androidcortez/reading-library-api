@@ -29,7 +29,7 @@ CREATE TABLE `Users` (
     `user_type_id` INT NOT NULL,
     `full_name` VARCHAR(150) NOT NULL,
     `username` VARCHAR(50) NOT NULL UNIQUE,
-    `email` VARCHAR(150) NOT NULL,
+    `email` VARCHAR(150) NOT NULL UNIQUE,
     `password` TEXT NOT NULL,
     `status` INT(1) NOT NULL DEFAULT 0 COMMENT '1 = active, 0 = inactive',
     `created_at` DATETIME NOT NULL,
