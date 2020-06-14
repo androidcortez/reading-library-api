@@ -62,14 +62,31 @@ function create(params) {
 }
 
 function update(id, params) {
+  var query = "";
+  var valuesToScape = [];
+
+  params["updated_by"] = "ecortes";
+  params["updated_at"] = util.getUTCDateTime;
   
-  params['updated_by'] = "ecortes";
-  params['updated_at'] = util.getUTCDateTime;
+  /**
+   * if the password exists in the request, the query is changed
+   * because it must be encrypted with sha1 and the password is
+   * removed from the request as it will be sent separately
+   */
+  if (params.hasOwnProperty("password")) {
+    password = params["password"];
+    delete params['password'];
+    query = "UPDATE Users SET ?, password = SHA1(?) WHERE id = ?";
+    valuesToScape = [params, password, id]
+  } else {
+    valuesToScape = [params, id]
+    query = "UPDATE Users SET ? WHERE id = ?";
+  }
 
   return new Promise((resolve, reject) => {
     mysqlConnection.query(
-      "UPDATE Users SET ? WHERE id = ?",
-      [params, id],
+      query,
+      valuesToScape,
       (err, res) => {
         if (err) {
           reject(err);
