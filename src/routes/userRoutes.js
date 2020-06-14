@@ -5,12 +5,18 @@ const usersController = require("../controllers/userController");
 
 router.route("/users")
   .get(usersController.index)
-  .post(usersController.create);
+  .post(
+    usersController.validatorSave,
+    usersController.create
+  );
 
 router
   .route("/users/:id")
   .get(usersController.show)
-  .put(usersController.update)
+  .put(
+    usersController.validatorUpdate,
+    usersController.update
+  )
   .delete(usersController.remove);
 
 module.exports = router;
