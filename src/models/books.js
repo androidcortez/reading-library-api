@@ -3,13 +3,20 @@ const util = require("../common/util");
 
 function getAll() {
   let sql = `
-  SELECT b.title, b.description, b.author, b.publication_date, 
-  b.number_of_pages,c.name AS category
+  SELECT 
+  b.title, 
+  b.description, 
+  b.author, 
+  b.publication_date, 
+  b.number_of_pages,
+  c.name AS category
   FROM Books b
   INNER JOIN Categories c
   INNER JOIN Categories_Books cb
-  ON b.id = cb.book_id AND c.id  = cb.category_id;
+  ON b.id = cb.book_id 
+  AND c.id  = cb.category_id;
   `;
+
   return new Promise((resolve, reject) => {
     mysql_connection.query(sql, (err, res) => {
       if (err) {
@@ -23,12 +30,18 @@ function getAll() {
 
 function getById(id) {
   let sql = `
-  SELECT b.title, b.description, b.author, b.publication_date, 
-  b.number_of_pages,c.name AS category
+  SELECT 
+  b.title, 
+  b.description, 
+  b.author, 
+  b.publication_date, 
+  b.number_of_pages,
+  c.name AS category
   FROM Books b
   INNER JOIN Categories c
   INNER JOIN Categories_Books cb
-  ON b.id = cb.book_id AND c.id  = cb.category_id
+  ON b.id = cb.book_id 
+  AND c.id  = cb.category_id
   WHERE b.id = ?
   `;
 
@@ -109,7 +122,6 @@ function create(params) {
               user,
             ]);
           });
-      
 
           mysql_connection.query(sql, [records], (err, res) => {
             if (err) {
@@ -148,8 +160,18 @@ function remove(id) {
   });
 }
 
-function update(params){
-
+function update() {
+  return {
+    title: "A fine fine school",
+    description: "This book is amazing",
+    author: "Por Asignar",
+    publication_date: "2010-03-06",
+    number_of_pages: 242,
+    category: [
+      2,
+      1
+    ]    
+  };
 }
 
 function validatorSave(params) {
@@ -157,14 +179,14 @@ function validatorSave(params) {
     error: false,
     message: "",
   };
-  const { 
-    title, 
-    description, 
-    author, 
-    publication_date, 
+  const {
+    title,
+    description,
+    author,
+    publication_date,
     number_of_pages,
     category_id,
-   } = params;
+  } = params;
 
   if (!title) {
     response.error = true;
@@ -193,8 +215,7 @@ module.exports = {
   getAll,
   getById,
   create,
+  update,
   remove,
   validatorSave,
-  update,
 };
-

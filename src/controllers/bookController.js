@@ -70,6 +70,11 @@ function create(req, res) {
     });
 }
 
+function update(req,res){
+  res.send(bookModel.update());
+}
+
+
 function remove(req, res) {
   bookModel
     .remove(req.params.id)
@@ -93,6 +98,7 @@ function remove(req, res) {
 module.exports = {
   index,
   show,
+  update,
   create,
   remove,
 };
