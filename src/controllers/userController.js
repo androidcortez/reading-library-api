@@ -1,4 +1,5 @@
 const usersModel = require("../models/users");
+const { validationResult } = require("express-validator");
 
 function index(req, res) {
   usersModel
@@ -34,29 +35,54 @@ function show(req, res) {
 
 function create(req, res) {
   //validate fields from request
-  var validator = usersModel.validator_save(req.body);
-  if (validator.error) {
-    res.status(400);
-    res.json({ error: true, type: "BAD_REQUEST", data: validator.message });
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      error: true,
+      type: "UNPROCESSABLE_ENTITY",
+      data: errors.array(),
+    });
   }
 
   usersModel
-  .create(req.body)
-  .then((user) => {
-    res.json({
-      error: false,
-      type: null,
-      data: user ? user : [],
+    .create(req.body)
+    .then((user) => {
+      res.json({
+        error: false,
+        type: null,
+        data: user ? user : [],
+      });
+    })
+    .catch((err) => {
+      res.status(500);
+      res.json({ error: true, type: err.code, data: err.sqlMessage });
     });
-  })
-  .catch((err) => {
-    res.status(500);
-    res.json({ error: true, type: err.code, data: err.sqlMessage });
-  });
 }
 
 function update(req, res) {
-  res.json(usersModel.update());
+  //validate fields from request
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      error: true,
+      type: "UNPROCESSABLE_ENTITY",
+      data: errors.array(),
+    });
+  }
+
+  usersModel
+    .update(req.params.id, req.body)
+    .then((user) => {
+      res.json({
+        error: false,
+        type: null,
+        data: user ? user : [],
+      });
+    })
+    .catch((err) => {
+      res.status(500);
+      res.json({ error: true, type: err.code, data: err.sqlMessage });
+    });
 }
 
 function remove(req, res) {
@@ -81,4 +107,6 @@ module.exports = {
   create,
   update,
   remove,
+  validatorSave: usersModel.validatorSave,
+  validatorUpdate: usersModel.validatorUpdate,
 };
