@@ -3,9 +3,13 @@ const router = express.Router();
 
 const bookController = require("../controllers/bookController");
 
-router.route("/books")
-    .get(bookController.index)
-    .post(bookController.create);
+router
+  .route("/books")
+  .get(bookController.index)
+  .post(
+    bookController.validatorSave, 
+    bookController.create
+  );
 
 router
   .route("/books/:id")
@@ -14,6 +18,3 @@ router
   .delete(bookController.remove);
 
 module.exports = router;
-
-
-

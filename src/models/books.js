@@ -1,5 +1,6 @@
-const mysql_connection = require("../config/db");
+const mysqlConnection = require("../config/db");
 const util = require("../common/util");
+const { body } = require("express-validator");
 
 function getAll() {
   let sql = `
@@ -18,7 +19,7 @@ function getAll() {
   `;
 
   return new Promise((resolve, reject) => {
-    mysql_connection.query(sql, (err, res) => {
+    mysqlConnection.query(sql, (err, res) => {
       if (err) {
         reject(err);
       } else {
@@ -46,7 +47,7 @@ function getById(id) {
   `;
 
   return new Promise((resolve, reject) => {
-    mysql_connection.query(sql, [id], (err, res) => {
+    mysqlConnection.query(sql, [id], (err, res) => {
       if (err) {
         reject(err);
       } else {
@@ -63,18 +64,18 @@ function create(params) {
     author,
     publication_date,
     number_of_pages,
-    category_id,
+    categories,
     status,
   } = params;
   const user = "admin";
-  const dateTime = util.getDateTime;
+  const dateTime = util.getUTCDateTime;
 
   return new Promise((resolve, reject) => {
-    mysql_connection.beginTransaction((err) => {
+    mysqlConnection.beginTransaction((err) => {
       if (err) {
         throw err;
       }
-      mysql_connection.query(
+      mysqlConnection.query(
         "INSERT INTO Books values (0,?,?,?,?,?,?,?,?,?,?) ",
         [
           title,
@@ -90,7 +91,7 @@ function create(params) {
         ],
         (err, res) => {
           if (err) {
-            mysql_connection.rollback(() => {
+            mysqlConnection.rollback(() => {
               throw err;
             });
           }
@@ -110,11 +111,11 @@ function create(params) {
           ) VALUES ?
           `;
 
-          category_id.forEach((category) => {
+          categories.forEach((category_id) => {
             records.push([
               0,
               bookId,
-              category,
+              category_id,
               status ? status : 0,
               dateTime,
               user,
@@ -123,13 +124,13 @@ function create(params) {
             ]);
           });
 
-          mysql_connection.query(sql, [records], (err, res) => {
+          mysqlConnection.query(sql, [records], (err, res) => {
             if (err) {
-              mysql_connection.rollback(() => {
+              mysqlConnection.rollback(() => {
                 throw err;
               });
             } else {
-              mysql_connection.commit((err, res) => {
+              mysqlConnection.commit((err, res) => {
                 if (err) {
                   reject(err);
                 } else {
@@ -146,7 +147,7 @@ function create(params) {
 
 function remove(id) {
   return new Promise((resolve, reject) => {
-    mysql_connection.query(
+    mysqlConnection.query(
       "UPDATE Books SET status = ? WHERE id = ?",
       [0, id],
       (err, res) => {
@@ -167,49 +168,55 @@ function update() {
     author: "Por Asignar",
     publication_date: "2010-03-06",
     number_of_pages: 242,
-    category: [
+    categories: [
       2,
       1
     ]    
   };
 }
 
-function validatorSave(params) {
-  var response = {
-    error: false,
-    message: "",
-  };
-  const {
-    title,
-    description,
-    author,
-    publication_date,
-    number_of_pages,
-    category_id,
-  } = params;
+// Validate field before insert to database
+const validatorSave = [
+  body("title")
+    .notEmpty()
+    .withMessage("The title is required")
+    .isString()
+    .withMessage("The title must be string")
+    .isLength({max: 200})
+    .withMessage("The title must have maximun 200 characters"),
+  body("description")
+    .notEmpty()
+    .withMessage("The description is required")
+    .isString()
+    .withMessage("The description must be string"),
+  body("author")
+    .notEmpty()
+    .withMessage("The author is required")
+    .isString()
+    .withMessage("The author must be string")
+    .isLength({max: 150})
+    .withMessage("The autor must have maximun 150 characters"),
+  body("publication_date")
+    .notEmpty()
+    .withMessage("The publication_date is required"),
+  body("number_of_pages")
+    .notEmpty()
+    .withMessage("The number_of_pages is required")
+    .isInt()
+    .withMessage("The number_of_pages must be integer"),
+  body("categories")
+    .notEmpty()
+    .withMessage("the categories are required")
+]
 
-  if (!title) {
-    response.error = true;
-    response.message = "The title is required";
-  } else if (!description) {
-    response.error = true;
-    response.message = "The description is required";
-  } else if (!author) {
-    response.error = true;
-    response.message = "The author is required";
-  } else if (!publication_date) {
-    response.error = true;
-    response.message = "The publication_date is required";
-  } else if (!number_of_pages) {
-    response.error = true;
-    response.message = "The number_of_pages is required";
-  } else if (!category_id) {
-    response.error = true;
-    response.message = "The category_id is required";
-  }
+// Validate fields before update the database
 
-  return response;
-}
+const validatorUpdate = [
+
+  
+]
+
+
 
 module.exports = {
   getAll,
@@ -218,4 +225,5 @@ module.exports = {
   update,
   remove,
   validatorSave,
+  validatorUpdate,
 };

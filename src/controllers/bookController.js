@@ -1,4 +1,5 @@
 const bookModel = require("../models/books");
+const { validationResult } = require("express-validator");
 
 function index(req, res) {
   bookModel
@@ -41,16 +42,15 @@ function show(req, res) {
 }
 
 function create(req, res) {
-  var validator = bookModel.validatorSave(req.body);
-  if (validator.error) {
-    res.status(400);
-    res.json({
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
       error: true,
-      type: "BAD_REQUEST",
-      data: validator.message,
+      type: "UNPROCESSABLE_ENTITY",
+      data: errors.array(),
     });
   }
-  
+
   bookModel
     .create(req.body)
     .then((book) => {
@@ -70,10 +70,9 @@ function create(req, res) {
     });
 }
 
-function update(req,res){
+function update(req, res) {
   res.send(bookModel.update());
 }
-
 
 function remove(req, res) {
   bookModel
@@ -101,4 +100,5 @@ module.exports = {
   update,
   create,
   remove,
+  validatorSave: bookModel.validatorSave
 };
