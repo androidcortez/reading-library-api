@@ -4,18 +4,21 @@ const { body } = require("express-validator");
 
 function getAll() {
   let sql = `
-  SELECT 
-  b.title, 
-  b.description, 
-  b.author, 
-  b.publication_date, 
-  b.number_of_pages,
-  c.name AS category
-  FROM Books b
-  INNER JOIN Categories c
-  INNER JOIN Categories_Books cb
-  ON b.id = cb.book_id 
-  AND c.id  = cb.category_id;
+    SELECT 
+      b.id,
+      b.title, 
+      b.description, 
+      b.author, 
+      b.publication_date, 
+      b.number_of_pages,
+      GROUP_CONCAT(c.name SEPARATOR ', ') AS category
+    FROM Books b
+    INNER JOIN Categories c
+    INNER JOIN Categories_Books cb
+    ON b.id = cb.book_id 
+    AND c.id  = cb.category_id
+    AND b.status = 1
+    GROUP BY b.id;
   `;
 
   return new Promise((resolve, reject) => {
@@ -31,19 +34,21 @@ function getAll() {
 
 function getById(id) {
   let sql = `
-  SELECT 
-  b.title, 
-  b.description, 
-  b.author, 
-  b.publication_date, 
-  b.number_of_pages,
-  c.name AS category
-  FROM Books b
-  INNER JOIN Categories c
-  INNER JOIN Categories_Books cb
-  ON b.id = cb.book_id 
-  AND c.id  = cb.category_id
-  WHERE b.id = ?
+    SELECT
+      b.id,
+      b.title, 
+      b.description, 
+      b.author, 
+      b.publication_date, 
+      b.number_of_pages,
+      GROUP_CONCAT(c.name SEPARATOR ', ') AS category,
+      b.status
+    FROM Books b
+    INNER JOIN Categories c
+    INNER JOIN Categories_Books cb
+    ON b.id = cb.book_id 
+    AND c.id  = cb.category_id
+    WHERE b.id = ?
   `;
 
   return new Promise((resolve, reject) => {
@@ -198,7 +203,13 @@ const validatorSave = [
     .withMessage("The autor must have maximun 150 characters"),
   body("publication_date")
     .notEmpty()
-    .withMessage("The publication_date is required"),
+    .withMessage("The publication_date is required")
+    .custom((publication_date) => {
+      return util.isValidDate(publication_date);
+    })
+    .withMessage(
+      "The publication_date is not valid must be in the format yyyy-mm-dd"
+    ),
   body("number_of_pages")
     .notEmpty()
     .withMessage("The number_of_pages is required")
@@ -206,7 +217,13 @@ const validatorSave = [
     .withMessage("The number_of_pages must be integer"),
   body("categories")
     .notEmpty()
-    .withMessage("the categories are required")
+    .withMessage("The categories are required")
+    .isArray()
+    .withMessage("The categories must be array")
+    .custom((categories) => {
+      return util.contentArrayInt(categories);
+    })
+    .withMessage("The array of categories must be integers")
 ]
 
 // Validate fields before update the database
