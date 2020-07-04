@@ -21,10 +21,10 @@ function login(req, res) {
           data: user,
         });
       } else {
-        res.status(400);
+        res.status(401);
         res.json({
           error: true,
-          type: "INVALID_CREDENTIALS",
+          type: "UNAUTHORIZED_INVALID_CREDENTIALS",
           data: {
             msg: "wrong username or password",
           },
