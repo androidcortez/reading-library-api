@@ -14,6 +14,7 @@ app.get('/', (req, res) => {
 
 //Routes to the endpoints
 app.use(require('./routes/userRoutes'));
+app.use(require('./routes/authRoutes'));
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}!`)
