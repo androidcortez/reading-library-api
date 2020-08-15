@@ -14,7 +14,8 @@ app.get("/", (req, res) => {
 
 
 //Routes to the endpoints
-app.use(require("./routes/userRoutes"));
+app.use(require('./routes/userRoutes'));
+app.use(require('./routes/authRoutes'));
 app.use(require("./routes/bookRoutes"));
 
 app.listen(PORT, () => {
