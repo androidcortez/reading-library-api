@@ -1,10 +1,10 @@
-const mysqlConnection = require("../config/db");
+const DBConnection = require("../config/db");
 const util = require("../common/util");
 const { body } = require("express-validator");
 
 function getAll() {
   return new Promise((resolve, reject) => {
-    mysqlConnection.query("SELECT * FROM Users", (err, res) => {
+    DBConnection.query("SELECT * FROM Users", (err, res) => {
       if (err) {
         reject(err);
       } else {
@@ -16,7 +16,7 @@ function getAll() {
 
 function getById(id) {
   return new Promise((resolve, reject) => {
-    mysqlConnection.query(
+    DBConnection.query(
       "SELECT * FROM Users WHERE id = ?",
       [id],
       (err, res) => {
@@ -36,7 +36,7 @@ function create(params) {
   const dateTime = util.getUTCDateTime;
 
   return new Promise((resolve, reject) => {
-    mysqlConnection.query(
+    DBConnection.query(
       "INSERT INTO Users VALUES (0,?,?,?,?,SHA1(?),?,?,?,?,?)",
       [
         user_type_id,
@@ -84,7 +84,7 @@ function update(id, params) {
   }
 
   return new Promise((resolve, reject) => {
-    mysqlConnection.query(
+    DBConnection.query(
       query,
       valuesToScape,
       (err, res) => {
@@ -106,7 +106,7 @@ function remove(id) {
   };
 
   return new Promise((resolve, reject) => {
-    mysqlConnection.query(
+    DBConnection.query(
       "UPDATE Users SET ? WHERE id = ?",
       [newValues, id],
       (err, res) => {
@@ -123,7 +123,7 @@ function remove(id) {
 // validate if username already in use
 function usernameIsUsed(username) {
   return new Promise((resolve, reject) => {
-    mysqlConnection.query(
+    DBConnection.query(
       "SELECT * FROM Users WHERE username = ?",
       [username],
       (err, res) => {
@@ -140,7 +140,7 @@ function usernameIsUsed(username) {
 // validate if email already in use
 function emailIsUsed(email) {
   return new Promise((resolve, reject) => {
-    mysqlConnection.query(
+    DBConnection.query(
       "SELECT * FROM Users WHERE email = ?",
       [email],
       (err, res) => {
@@ -154,7 +154,6 @@ function emailIsUsed(email) {
   });
 }
 
-//validate fields to insert in the database
 const validatorSave = [
   body("user_type_id")
     .notEmpty()
@@ -213,7 +212,6 @@ const validatorSave = [
     .withMessage("The status must be only 0 or 1"),
 ];
 
-//validate fields to update in the database
 const validatorUpdate = [
   body("user_type_id")
     .optional()

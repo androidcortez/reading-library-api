@@ -1,8 +1,8 @@
-const usersModel = require("../models/users");
+const users = require("../models/users");
 const { validationResult } = require("express-validator");
 
 function index(req, res) {
-  usersModel
+  users
     .getAll()
     .then((users) => {
       res.json({
@@ -18,7 +18,7 @@ function index(req, res) {
 }
 
 function show(req, res) {
-  usersModel
+  users
     .getById(req.params.id)
     .then((user) => {
       res.json({
@@ -44,7 +44,7 @@ function create(req, res) {
     });
   }
 
-  usersModel
+  users
     .create(req.body)
     .then((user) => {
       res.json({
@@ -70,7 +70,7 @@ function update(req, res) {
     });
   }
 
-  usersModel
+  users
     .update(req.params.id, req.body)
     .then((user) => {
       res.json({
@@ -86,7 +86,7 @@ function update(req, res) {
 }
 
 function remove(req, res) {
-  usersModel
+  users
     .remove(req.params.id)
     .then((user) => {
       res.json({
@@ -107,6 +107,6 @@ module.exports = {
   create,
   update,
   remove,
-  validatorSave: usersModel.validatorSave,
-  validatorUpdate: usersModel.validatorUpdate,
+  validatorSave: users.validatorSave,
+  validatorUpdate: users.validatorUpdate,
 };

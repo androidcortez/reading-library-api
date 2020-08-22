@@ -1,28 +1,21 @@
-const mysqlConnection = require("../config/db");
+const DBConnection = require("../config/db");
 const util = require("../common/util");
 const { body } = require("express-validator");
+const { NotFound } = require("../common/errors");
 
 function getAll() {
   let sql = `
     SELECT 
-      b.id,
-      b.title, 
-      b.description, 
-      b.author, 
-      b.publication_date, 
-      b.number_of_pages,
-      GROUP_CONCAT(c.name SEPARATOR ', ') AS category
+      b.*,
+      IFNULL(GROUP_CONCAT(c.name SEPARATOR ', '), "") AS category
     FROM Books b
-    INNER JOIN Categories c
-    INNER JOIN Categories_Books cb
-    ON b.id = cb.book_id 
-    AND c.id  = cb.category_id
-    AND b.status = 1
+    LEFT JOIN Categories_Books cb ON cb.book_id = b.id AND cb.status = 1
+    LEFT JOIN Categories c ON c.id = cb.category_id
     GROUP BY b.id;
   `;
 
   return new Promise((resolve, reject) => {
-    mysqlConnection.query(sql, (err, res) => {
+    DBConnection.query(sql, (err, res) => {
       if (err) {
         reject(err);
       } else {
@@ -34,29 +27,25 @@ function getAll() {
 
 function getById(id) {
   let sql = `
-    SELECT
-      b.id,
-      b.title, 
-      b.description, 
-      b.author, 
-      b.publication_date, 
-      b.number_of_pages,
-      GROUP_CONCAT(c.name SEPARATOR ', ') AS category,
-      b.status
+    SELECT 
+      b.*,
+      IFNULL(GROUP_CONCAT(c.name SEPARATOR ', '), "") AS category
     FROM Books b
-    INNER JOIN Categories c
-    INNER JOIN Categories_Books cb
-    ON b.id = cb.book_id 
-    AND c.id  = cb.category_id
-    WHERE b.id = ?
+    LEFT JOIN Categories_Books cb ON cb.book_id = b.id AND cb.status = 1
+    LEFT JOIN Categories c ON c.id = cb.category_id
+    WHERE b.id = ?;
   `;
 
   return new Promise((resolve, reject) => {
-    mysqlConnection.query(sql, [id], (err, res) => {
+    DBConnection.query(sql, [id], (err, res) => {
       if (err) {
         reject(err);
       } else {
-        resolve(res);
+        if (!res[0].id) {
+          reject(new NotFound("Record not found"));
+        } else {
+          resolve(res[0]);
+        }
       }
     });
   });
@@ -76,83 +65,71 @@ function create(params) {
   const dateTime = util.getUTCDateTime;
 
   return new Promise((resolve, reject) => {
-    mysqlConnection.beginTransaction((err) => {
-      if (err) {
-        throw err;
-      }
-      mysqlConnection.query(
-        "INSERT INTO Books values (0,?,?,?,?,?,?,?,?,?,?) ",
-        [
-          title,
-          description,
-          author,
-          publication_date,
-          number_of_pages,
-          status ? status : 0,
-          dateTime,
-          user,
-          dateTime,
-          user,
-        ],
-        (err, res) => {
-          if (err) {
-            mysqlConnection.rollback(() => {
-              throw err;
-            });
-          }
+    DBConnection.getConnection((err, connection) => {
+      connection.beginTransaction((err) => {
+        if (err) {
+          reject(err);
+        }
+        
+        connection.query(
+          "INSERT INTO Books VALUES (0,?,?,?,?,?,?,?,?,?,?) ",
+          [
+            title,
+            description,
+            author,
+            publication_date,
+            number_of_pages,
+            status ? status : 0,
+            dateTime,
+            user,
+            dateTime,
+            user,
+          ],
+          (err, res) => {
+            if (err) {
+              connection.rollback(() => {
+                reject(err);
+              });
+            }
 
-          var bookId = res.insertId;
-          var records = [];
-          var sql = `
-          INSERT INTO Categories_Books(
-            id,
-            book_id,
-            category_id,
-            status,
-            created_at,
-            created_by,
-            updated_at,
-            updated_by
-          ) VALUES ?
-          `;
-
-          categories.forEach((category_id) => {
-            records.push([
+            var bookId = res.insertId;
+            const sql = `INSERT INTO Categories_Books VALUES ?;`;
+            const ctgToSave = categories.map((category) => [
               0,
               bookId,
-              category_id,
+              category,
               status ? status : 0,
               dateTime,
               user,
               dateTime,
               user,
             ]);
-          });
 
-          mysqlConnection.query(sql, [records], (err, res) => {
-            if (err) {
-              mysqlConnection.rollback(() => {
-                throw err;
-              });
-            } else {
-              mysqlConnection.commit((err, res) => {
-                if (err) {
+            connection.query(sql, [ctgToSave], (err, res) => {
+              if (err) {
+                connection.rollback(() => {
                   reject(err);
-                } else {
-                  resolve(res);
-                }
-              });
-            }
-          });
-        }
-      );
+                });
+              } else {
+                connection.commit((err, res) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(getById(bookId));
+                  }
+                });
+              }
+            });
+          }
+        );
+      });
     });
   });
 }
 
 function remove(id) {
   return new Promise((resolve, reject) => {
-    mysqlConnection.query(
+    DBConnection.query(
       "UPDATE Books SET status = ? WHERE id = ?",
       [0, id],
       (err, res) => {
@@ -173,10 +150,7 @@ function update() {
     author: "Por Asignar",
     publication_date: "2010-03-06",
     number_of_pages: 242,
-    categories: [
-      2,
-      1
-    ]    
+    categories: [2, 1],
   };
 }
 
@@ -187,7 +161,7 @@ const validatorSave = [
     .withMessage("The title is required")
     .isString()
     .withMessage("The title must be string")
-    .isLength({max: 200})
+    .isLength({ max: 200 })
     .withMessage("The title must have maximun 200 characters"),
   body("description")
     .notEmpty()
@@ -199,7 +173,7 @@ const validatorSave = [
     .withMessage("The author is required")
     .isString()
     .withMessage("The author must be string")
-    .isLength({max: 150})
+    .isLength({ max: 150 })
     .withMessage("The autor must have maximun 150 characters"),
   body("publication_date")
     .notEmpty()
@@ -223,17 +197,11 @@ const validatorSave = [
     .custom((categories) => {
       return util.contentArrayInt(categories);
     })
-    .withMessage("The array of categories must be integers")
-]
+    .withMessage("The array of categories must be integers"),
+];
 
 // Validate fields before update the database
-
-const validatorUpdate = [
-
-  
-]
-
-
+const validatorUpdate = [];
 
 module.exports = {
   getAll,

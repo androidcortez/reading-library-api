@@ -14,9 +14,15 @@ app.get("/", (req, res) => {
 
 
 //Routes to the endpoints
-app.use(require('./routes/userRoutes'));
 app.use(require('./routes/authRoutes'));
-app.use(require("./routes/bookRoutes"));
+app.use(require('./routes/usersRoutes'));
+app.use(require("./routes/booksRoutes"));
+app.use(require("./routes/categoriesRoutes"));
+app.use(require("./routes/categoriesBooksRoutes"));
+
+//Middleware - After
+app.use(require("./middlewares/handleErrors"));
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}!`);
