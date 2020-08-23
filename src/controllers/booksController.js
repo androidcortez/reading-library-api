@@ -42,28 +42,32 @@ async function create(req, res, next) {
   }
 }
 
-function update(req, res) {
-  res.send(booksModel.update());
+async function update(req, res, next) {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new BadRequest(errors.array());
+    }
+    const updateBook = await booksModel.update(req.params.id, req.body);
+    res.json({
+      status: "success",
+      data: updateBook,
+    });
+  } catch (err) {
+    next(err);
+  }
 }
 
-function remove(req, res) {
-  booksModel
-    .remove(req.params.id)
-    .then((book) => {
-      res.json({
-        error: false,
-        type: null,
-        data: book ? book : [],
-      });
-    })
-    .catch((err) => {
-      res.status(500),
-        res.json({
-          error: true,
-          type: err.code,
-          data: err.sqlMessage,
-        });
+async function remove(req, res) {
+  try {
+    const removeBook = await booksModel.remove(req.params.id);
+    res.json({
+      status: "success",
+      data: removeBook,
     });
+  } catch (err) {
+    next(err);
+  }
 }
 
 module.exports = {

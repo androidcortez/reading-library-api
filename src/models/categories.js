@@ -1,7 +1,7 @@
 const DBConnection = require("../config/db");
 const util = require("../common/util");
 const { body } = require("express-validator");
-const { NotFound } = require("../common/errors");
+const { NotFound, BadRequest } = require("../common/errors");
 
 function getAll() {
   return new Promise((resolve, reject) => {
@@ -65,7 +65,7 @@ function remove(id) {
           reject(err);
         } else {
           if (res.affectedRows == 0) {
-            reject(new NotFound("Record to remove not found"));
+            reject(new NotFound("The record to remove was not found"));
           } else {
             resolve(getById(id));
           }
@@ -76,6 +76,9 @@ function remove(id) {
 }
 
 function update(id, params) {
+  if (Object.entries(params).length === 0) {
+    throw new BadRequest("The request cannot be empty");
+  }
   return new Promise((resolve, reject) => {
     DBConnection.query(
       "UPDATE Categories SET ? WHERE id = ?;",
@@ -85,7 +88,7 @@ function update(id, params) {
           reject(err);
         } else {
           if (res.affectedRows == 0) {
-            reject(new NotFound("Record to update not found"));
+            reject(new NotFound("The record to update was not found"));
           } else {
             resolve(getById(id));
           }

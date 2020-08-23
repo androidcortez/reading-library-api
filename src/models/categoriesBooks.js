@@ -1,7 +1,8 @@
 const DBConnection = require("../config/db");
 const util = require("../common/util");
 const { body } = require("express-validator");
-const { NotFound } = require("../common/errors");
+const { NotFound, BadRequest } = require("../common/errors");
+const categoriesModel = require("./categories");
 
 function getAll() {
   return new Promise((resolve, reject) => {
@@ -73,7 +74,7 @@ function remove(id) {
           reject(err);
         } else {
           if (res.affectedRows == 0) {
-            reject(new NotFound("Record to remove not found"));
+            reject(new NotFound("The record to remove was not found"));
           } else {
             resolve(getById(id));
           }
@@ -84,6 +85,9 @@ function remove(id) {
 }
 
 function update(id, params) {
+  if (Object.entries(params).length === 0) {
+    throw new BadRequest("The request cannot be empty");
+  }
   return new Promise((resolve, reject) => {
     DBConnection.query(
       "UPDATE Categories_Books SET ? WHERE id = ?;",
@@ -93,10 +97,27 @@ function update(id, params) {
           reject(err);
         } else {
           if (res.affectedRows == 0) {
-            reject(new NotFound("Record to update not found"));
+            reject(new NotFound("The record to update was not found"));
           } else {
             resolve(getById(id));
           }
+        }
+      }
+    );
+  });
+}
+
+function validateExistingCtg(bookId, categoryId) {
+  return new Promise((resolve, reject) => {
+    DBConnection.query(
+      "SELECT * FROM Categories_Books WHERE book_id = ? AND category_id = ?;",
+      [bookId, categoryId],
+      (err, res) => {
+        if (err) {
+          reject(err);
+        } else {
+          console.log(res);
+          resolve(res);
         }
       }
     );
@@ -113,7 +134,19 @@ const validatorSave = [
     .notEmpty()
     .withMessage("The category_id is required")
     .isInt()
-    .withMessage("The category_id must be integer"),
+    .withMessage("The category_id must be integer")
+    .custom((value, { req }) => {
+      return validateExistingCtg(req.body.book_id, value).then((ctg) => {
+        if (ctg[0]) {
+          return Promise.reject(
+            "This category is already registered for this book"
+          );
+        }
+      });
+    })
+    .custom((value) => {
+      return categoriesModel.getById(value);
+    }),
   body("status")
     .optional()
     .isInt()
@@ -134,7 +167,10 @@ const validatorUpdate = [
     .notEmpty()
     .withMessage("The category_id is required")
     .isInt()
-    .withMessage("The category_id must be integer"),
+    .withMessage("The category_id must be integer")
+    .custom((value) => {
+      return categoriesModel.getById(value);
+    }),
   body("status")
     .optional()
     .isInt()
