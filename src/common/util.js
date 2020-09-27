@@ -1,3 +1,5 @@
+"use strict";
+
 const getUTCDateTime = (function () {
   var today = new Date();
   var date =

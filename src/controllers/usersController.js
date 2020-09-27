@@ -1,104 +1,75 @@
-const users = require("../models/users");
+"use strict";
+
+const usersModel = require("../models/users");
 const { validationResult } = require("express-validator");
+const { BadRequest } = require("../common/errors");
 
-function index(req, res) {
-  users
-    .getAll()
-    .then((users) => {
-      res.json({
-        error: false,
-        type: null,
-        data: users,
-      });
-    })
-    .catch((err) => {
-      res.status(500);
-      res.json({ error: true, type: err.code, data: err.sqlMessage });
+async function index(req, res, next) {
+  try {
+    const users = await usersModel.getAll();
+    res.json({
+      status: "success",
+      data: users,
     });
-}
-
-function show(req, res) {
-  users
-    .getById(req.params.id)
-    .then((user) => {
-      res.json({
-        error: false,
-        type: null,
-        data: user ? user : [],
-      });
-    })
-    .catch((err) => {
-      res.status(500);
-      res.json({ error: true, type: err.code, data: err.sqlMessage });
-    });
-}
-
-function create(req, res) {
-  //validate fields from request
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({
-      error: true,
-      type: "UNPROCESSABLE_ENTITY",
-      data: errors.array(),
-    });
+  } catch (err) {
+    next(err);
   }
-
-  users
-    .create(req.body)
-    .then((user) => {
-      res.json({
-        error: false,
-        type: null,
-        data: user ? user : [],
-      });
-    })
-    .catch((err) => {
-      res.status(500);
-      res.json({ error: true, type: err.code, data: err.sqlMessage });
-    });
 }
 
-function update(req, res) {
-  //validate fields from request
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({
-      error: true,
-      type: "UNPROCESSABLE_ENTITY",
-      data: errors.array(),
+async function show(req, res, next) {
+  try {
+    const user = await usersModel.getById(req.params.id);
+    res.json({
+      status: "success",
+      data: user,
     });
+  } catch (err) {
+    next(err);
   }
-
-  users
-    .update(req.params.id, req.body)
-    .then((user) => {
-      res.json({
-        error: false,
-        type: null,
-        data: user ? user : [],
-      });
-    })
-    .catch((err) => {
-      res.status(500);
-      res.json({ error: true, type: err.code, data: err.sqlMessage });
-    });
 }
 
-function remove(req, res) {
-  users
-    .remove(req.params.id)
-    .then((user) => {
-      res.json({
-        error: false,
-        type: null,
-        data: user ? user : [],
-      });
-    })
-    .catch((err) => {
-      res.status(500);
-      res.json({ error: true, type: err.code, data: err.sqlMessage });
+async function create(req, res, next) {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new BadRequest(errors.array());
+    }
+    const user = await usersModel.create(req.body);
+    res.json({
+      status: "success",
+      data: user,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function update(req, res, next) {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new BadRequest(errors.array());
+    }
+    const user = await usersModel.update(req.params.id, req.body);
+    res.json({
+      status: "success",
+      data: user,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function remove(req, res, next) {
+  try {
+    const user = await usersModel.remove(req.params.id);
+    res.json({
+      status: "success",
+      data: user,
+    });
+  } catch (err) {
+    next(err);
+  }
 }
 
 module.exports = {
@@ -107,6 +78,6 @@ module.exports = {
   create,
   update,
   remove,
-  validatorSave: users.validatorSave,
-  validatorUpdate: users.validatorUpdate,
+  validatorSave: usersModel.validatorSave,
+  validatorUpdate: usersModel.validatorUpdate,
 };

@@ -1,3 +1,4 @@
+"use strict";
 const DBConnection = require("../config/db");
 const util = require("../common/util");
 const { body } = require("express-validator");
@@ -55,26 +56,6 @@ function create(params) {
   });
 }
 
-function remove(id) {
-  return new Promise((resolve, reject) => {
-    DBConnection.query(
-      "UPDATE Categories SET status = ? WHERE id = ?;",
-      [0, id],
-      (err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          if (res.affectedRows == 0) {
-            reject(new NotFound("The record to remove was not found"));
-          } else {
-            resolve(getById(id));
-          }
-        }
-      }
-    );
-  });
-}
-
 function update(id, params) {
   if (Object.entries(params).length === 0) {
     throw new BadRequest("The request cannot be empty");
@@ -89,6 +70,26 @@ function update(id, params) {
         } else {
           if (res.affectedRows == 0) {
             reject(new NotFound("The record to update was not found"));
+          } else {
+            resolve(getById(id));
+          }
+        }
+      }
+    );
+  });
+}
+
+function remove(id) {
+  return new Promise((resolve, reject) => {
+    DBConnection.query(
+      "UPDATE Categories SET status = ? WHERE id = ?;",
+      [0, id],
+      (err, res) => {
+        if (err) {
+          reject(err);
+        } else {
+          if (res.affectedRows == 0) {
+            reject(new NotFound("The record to remove was not found"));
           } else {
             resolve(getById(id));
           }

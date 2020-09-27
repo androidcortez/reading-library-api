@@ -1,3 +1,5 @@
+"use strict";
+
 const { GeneralError } = require("../common/errors");
 
 const handleErrors = (err, req, res, next) => {

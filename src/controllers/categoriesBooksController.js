@@ -1,3 +1,5 @@
+"use strict";
+
 const ctgBooksModel = require("../models/categoriesBooks");
 const { validationResult } = require("express-validator");
 const { BadRequest } = require("../common/errors");
@@ -32,10 +34,10 @@ async function create(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const saveCtgBook = await ctgBooksModel.create(req.body);
+    const ctgBook = await ctgBooksModel.create(req.body);
     res.json({
       status: "success",
-      data: saveCtgBook,
+      data: ctgBook,
     });
   } catch (err) {
     next(err);
@@ -48,10 +50,10 @@ async function update(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const updateCtgBook = await ctgBooksModel.update(req.params.id, req.body);
+    const ctgBook = await ctgBooksModel.update(req.params.id, req.body);
     res.json({
       status: "success",
-      data: updateCtgBook,
+      data: ctgBook,
     });
   } catch (err) {
     next(err);
@@ -60,10 +62,10 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const removeCtgBook = await ctgBooksModel.remove(req.params.id);
+    const ctgBook = await ctgBooksModel.remove(req.params.id);
     res.json({
       status: "success",
-      data: removeCtgBook,
+      data: ctgBook,
     });
   } catch (err) {
     next(err);

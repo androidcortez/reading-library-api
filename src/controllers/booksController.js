@@ -1,3 +1,5 @@
+"use strict";
+
 const booksModel = require("../models/books");
 const { validationResult } = require("express-validator");
 const { BadRequest } = require("../common/errors");
@@ -32,10 +34,10 @@ async function create(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const saveBook = await booksModel.create(req.body);
+    const book = await booksModel.create(req.body);
     res.json({
       status: "success",
-      data: saveBook,
+      data: book,
     });
   } catch (err) {
     next(err);
@@ -48,10 +50,10 @@ async function update(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const updateBook = await booksModel.update(req.params.id, req.body);
+    const book = await booksModel.update(req.params.id, req.body);
     res.json({
       status: "success",
-      data: updateBook,
+      data: book,
     });
   } catch (err) {
     next(err);
@@ -60,10 +62,10 @@ async function update(req, res, next) {
 
 async function remove(req, res) {
   try {
-    const removeBook = await booksModel.remove(req.params.id);
+    const book = await booksModel.remove(req.params.id);
     res.json({
       status: "success",
-      data: removeBook,
+      data: book,
     });
   } catch (err) {
     next(err);

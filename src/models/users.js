@@ -1,6 +1,9 @@
+"use strict";
+
 const DBConnection = require("../config/db");
 const util = require("../common/util");
 const { body } = require("express-validator");
+const { NotFound, BadRequest } = require("../common/errors");
 
 function getAll() {
   return new Promise((resolve, reject) => {
@@ -16,17 +19,17 @@ function getAll() {
 
 function getById(id) {
   return new Promise((resolve, reject) => {
-    DBConnection.query(
-      "SELECT * FROM Users WHERE id = ?",
-      [id],
-      (err, res) => {
-        if (err) {
-          reject(err);
+    DBConnection.query("SELECT * FROM Users WHERE id = ?", [id], (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        if (!res[0]) {
+          reject(new NotFound("Record not found"));
         } else {
           resolve(res[0]);
         }
       }
-    );
+    });
   });
 }
 
@@ -54,7 +57,7 @@ function create(params) {
         if (err) {
           reject(err);
         } else {
-          resolve(res.insertId);
+          resolve(getById(res.insertId));
         }
       }
     );
@@ -62,44 +65,42 @@ function create(params) {
 }
 
 function update(id, params) {
-  var query = "";
-  var valuesToScape = [];
+  if (Object.entries(params).length === 0) {
+    throw new BadRequest("The request cannot be empty");
+  }
+  let query = "";
+  let values = [];
 
   params["updated_by"] = "ecortes";
   params["updated_at"] = util.getUTCDateTime;
-  
-  /**
-   * if the password exists in the request, the query is changed
-   * because it must be encrypted with sha1 and the password is
-   * removed from the request as it will be sent separately
-   */
+
   if (params.hasOwnProperty("password")) {
     password = params["password"];
-    delete params['password'];
+    delete params["password"];
     query = "UPDATE Users SET ?, password = SHA1(?) WHERE id = ?";
-    valuesToScape = [params, password, id]
+    values = [params, password, id];
   } else {
-    valuesToScape = [params, id]
+    values = [params, id];
     query = "UPDATE Users SET ? WHERE id = ?";
   }
 
   return new Promise((resolve, reject) => {
-    DBConnection.query(
-      query,
-      valuesToScape,
-      (err, res) => {
-        if (err) {
-          reject(err);
+    DBConnection.query(query, values, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        if (res.affectedRows == 0) {
+          reject(new NotFound("The record to update was not found"));
         } else {
-          resolve(id);
+          resolve(getById(id));
         }
       }
-    );
+    });
   });
 }
 
 function remove(id) {
-  var newValues = {
+  const values = {
     status: 0,
     updated_by: "ecortes",
     updated_at: util.getUTCDateTime,
@@ -108,12 +109,16 @@ function remove(id) {
   return new Promise((resolve, reject) => {
     DBConnection.query(
       "UPDATE Users SET ? WHERE id = ?",
-      [newValues, id],
+      [values, id],
       (err, res) => {
         if (err) {
           reject(err);
         } else {
-          resolve(id);
+          if (res.affectedRows == 0) {
+            reject(new NotFound("The record to remove was not found"));
+          } else {
+            resolve(getById(id));
+          }
         }
       }
     );

@@ -1,3 +1,5 @@
+"use strict";
+
 const DBConnection = require("../config/db");
 const util = require("../common/util");
 const { body } = require("express-validator");

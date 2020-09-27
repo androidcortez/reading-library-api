@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports = {
     EXCEPTION_CODE_100: 100, //"Continue",                        // RFC 7231, 6.2.1
     EXCEPTION_CODE_101: 101, //"Switching Protocols",             // RFC 7231, 6.2.2
