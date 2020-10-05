@@ -11,16 +11,16 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Welcome to Reading Library!");
+  res.send("Welcome to Reading Library 😊!");
 });
 
 
 //Routes to the endpoints
-app.use(require('./routes/authRoutes'));
-app.use(require('./routes/usersRoutes'));
-app.use(require("./routes/booksRoutes"));
-app.use(require("./routes/categoriesRoutes"));
-app.use(require("./routes/categoriesBooksRoutes"));
+app.use(require('./routes/auth.routes'));
+app.use(require('./routes/users.routes'));
+app.use(require("./routes/books.routes"));
+app.use(require("./routes/categories.routes"));
+app.use(require("./routes/categoriesBooks.routes"));
 
 //Middleware - After
 app.use(require("./middlewares/handleErrors"));
