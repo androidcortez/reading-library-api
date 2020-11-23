@@ -1,12 +1,12 @@
 "use strict";
 
-const ctgModel = require("../models/categories");
+const { CategoryModel, validatorSave, validatorUpdate } = require("../models/category");
 const { validationResult } = require("express-validator");
-const { BadRequest } = require("../common/errors");
+const { BadRequest, NotFound } = require("../common/errors");
 
 async function index(req, res, next) {
   try {
-    const categories = await ctgModel.getAll();
+    const categories = await CategoryModel.findAll();
     res.json({
       status: "success",
       data: categories,
@@ -18,7 +18,10 @@ async function index(req, res, next) {
 
 async function show(req, res, next) {
   try {
-    const category = await ctgModel.getById(req.params.id);
+    const category = await CategoryModel.findByPk(req.params.id);
+    if (category === null) {
+      throw new NotFound("Record not found");
+    }
     res.json({
       status: "success",
       data: category,
@@ -34,7 +37,8 @@ async function create(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const category = await ctgModel.create(req.body);
+
+    const category = await CategoryModel.create(req.body);
     res.json({
       status: "success",
       data: category,
@@ -50,10 +54,19 @@ async function update(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const category = await ctgModel.update(req.params.id, req.body);
+
+    const [numberAffectedRows, affectedRows] = await CategoryModel.update(
+      req.body,
+      {
+        where: {
+          id: req.params.id,
+        },
+        individualHooks: true,
+      }
+    );
     res.json({
       status: "success",
-      data: category,
+      data: affectedRows[0],
     });
   } catch (err) {
     next(err);
@@ -62,10 +75,18 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const category = await ctgModel.remove(req.params.id);
+    const [numberAffectedRows, affectedRows] = await CategoryModel.update(
+      { status: 0 },
+      {
+        where: {
+          id: req.params.id,
+        },
+        individualHooks: true,
+      }
+    );
     res.json({
       status: "success",
-      data: category,
+      data: affectedRows[0],
     });
   } catch (err) {
     next(err);
@@ -75,9 +96,9 @@ async function remove(req, res, next) {
 module.exports = {
   index,
   show,
-  update,
   create,
+  update,
   remove,
-  validatorSave: ctgModel.validatorSave,
-  validatorUpdate: ctgModel.validatorUpdate,
+  validatorSave: validatorSave,
+  validatorUpdate: validatorUpdate,
 };

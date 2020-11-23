@@ -2,18 +2,17 @@
 
 const express = require("express");
 const router = express.Router();
-
-const categoriesController = require("../controllers/categories.controller");
+const categoryController = require("../controllers/category.controller");
 
 router
   .route("/categories")
-  .get(categoriesController.index)
-  .post(categoriesController.validatorSave, categoriesController.create);
+  .get(categoryController.index)
+  .post(categoryController.validatorSave, categoryController.create);
 
 router
   .route("/categories/:id")
-  .get(categoriesController.show)
-  .put(categoriesController.validatorUpdate, categoriesController.update)
-  .delete(categoriesController.remove);
+  .get(categoryController.show)
+  .put(categoryController.validatorUpdate, categoryController.update)
+  .delete(categoryController.remove);
 
 module.exports = router;

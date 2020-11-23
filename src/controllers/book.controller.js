@@ -1,15 +1,15 @@
 "use strict";
 
-const usersModel = require("../models/users");
+const { BookModel, validatorSave, validatorUpdate } = require("../models/book");
 const { validationResult } = require("express-validator");
-const { BadRequest } = require("../common/errors");
+const { BadRequest, NotFound } = require("../common/errors");
 
 async function index(req, res, next) {
   try {
-    const users = await usersModel.getAll();
+    const books = await BookModel.findAll();
     res.json({
       status: "success",
-      data: users,
+      data: books,
     });
   } catch (err) {
     next(err);
@@ -18,10 +18,13 @@ async function index(req, res, next) {
 
 async function show(req, res, next) {
   try {
-    const user = await usersModel.getById(req.params.id);
+    const book = await BookModel.findByPk(req.params.id);
+    if (book === null) {
+      throw new NotFound("Record not found");
+    }
     res.json({
       status: "success",
-      data: user,
+      data: book,
     });
   } catch (err) {
     next(err);
@@ -34,10 +37,11 @@ async function create(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const user = await usersModel.create(req.body);
+
+    const book = await BookModel.create(req.body);
     res.json({
       status: "success",
-      data: user,
+      data: book,
     });
   } catch (err) {
     next(err);
@@ -50,10 +54,19 @@ async function update(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const user = await usersModel.update(req.params.id, req.body);
+
+    const [numberAffectedRows, affectedRows] = await BookModel.update(
+      req.body,
+      {
+        where: {
+          id: req.params.id,
+        },
+        individualHooks: true,
+      }
+    );
     res.json({
       status: "success",
-      data: user,
+      data: affectedRows[0],
     });
   } catch (err) {
     next(err);
@@ -62,10 +75,18 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const user = await usersModel.remove(req.params.id);
+    const [numberAffectedRows, affectedRows] = await BookModel.update(
+      { status: 0 },
+      {
+        where: {
+          id: req.params.id,
+        },
+        individualHooks: true,
+      }
+    );
     res.json({
       status: "success",
-      data: user,
+      data: affectedRows[0],
     });
   } catch (err) {
     next(err);
@@ -78,6 +99,6 @@ module.exports = {
   create,
   update,
   remove,
-  validatorSave: usersModel.validatorSave,
-  validatorUpdate: usersModel.validatorUpdate,
+  validatorSave: validatorSave,
+  validatorUpdate: validatorUpdate,
 };

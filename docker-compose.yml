@@ -1,0 +1,28 @@
+version: "2"
+
+services:
+  web:
+    image: node
+    working_dir: /home/node/app
+    volumes:
+      - ./:/home/node/app
+    ports:
+      - 3000:3000
+    expose:
+      - 3000
+    command: "npm start"
+    links:
+      - db
+
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_USER: "${DATABASE_USER}"
+      MYSQL_ROOT_PASSWORD: "${DATABASE_PASS}"
+      MYSQL_DATABASE: "${DATABASE_NAME}"
+    ports:
+      - 3306:3306
+    expose:
+      - 3306

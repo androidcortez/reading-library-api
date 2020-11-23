@@ -2,17 +2,17 @@
 
 const express = require("express");
 const router = express.Router();
-const usersController = require("../controllers/users.controller");
+const userController = require("../controllers/user.controller");
 
 router
   .route("/users")
-  .get(usersController.index)
-  .post(usersController.validatorSave, usersController.create);
+  .get(userController.index)
+  .post(userController.validatorSave, userController.create);
 
 router
   .route("/users/:id")
-  .get(usersController.show)
-  .put(usersController.validatorUpdate, usersController.update)
-  .delete(usersController.remove);
+  .get(userController.show)
+  .put(userController.validatorUpdate, userController.update)
+  .delete(userController.remove);
 
 module.exports = router;

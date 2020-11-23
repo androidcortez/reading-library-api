@@ -3,17 +3,17 @@
 const express = require("express");
 const router = express.Router();
 
-const booksController = require("../controllers/books.controller");
+const bookController = require("../controllers/book.controller");
 
 router
   .route("/books")
-  .get(booksController.index)
-  .post(booksController.validatorSave, booksController.create);
+  .get(bookController.index)
+  .post(bookController.validatorSave, bookController.create);
 
 router
   .route("/books/:id")
-  .get(booksController.show)
-  .put(booksController.validatorUpdate, booksController.update)
-  .delete(booksController.remove);
+  .get(bookController.show)
+  .put(bookController.validatorUpdate, bookController.update)
+  .delete(bookController.remove);
 
 module.exports = router;

@@ -1,30 +1,30 @@
 "use strict";
 
-const mysqlConnection = require("../config/db");
+const { UserModel } = require("./user");
+const { QueryTypes } = require("sequelize");
+const db = require("../config/db");
 const { body } = require("express-validator");
-const { Unauthorized } = require("../common/errors");
 const jwt = require("jsonwebtoken");
+const { Unauthorized } = require("../common/errors");
 
-function login(params) {
+async function login(params) {
   const { username, password } = params;
-  return new Promise((resolve, reject) => {
-    mysqlConnection.query(
-      `SELECT * FROM Users WHERE username=? AND password=SHA1(?) AND status = 1`,
-      [username, password],
-      (err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          if (res.length == 0) {
-            reject(new Unauthorized("Wrong username or password"));
-          } else {
-            res[0]["token"] = generateAccessToken({ username: res.username });
-            resolve(res);
-          }
-        }
-      }
-    );
+
+  const result = await db.query("SELECT SHA1(?) as password", {
+    replacements: [password],
+    type: QueryTypes.SELECT,
   });
+
+  const user = await UserModel.findOne({
+    where: { username, password: result[0].password, status: 1 },
+  });
+
+  if (user === null) {
+    throw new Unauthorized("Wrong username or password");
+  }
+
+  user.dataValues["token"] = generateAccessToken({ username: user.username });
+  return user;
 }
 
 function generateAccessToken(username) {

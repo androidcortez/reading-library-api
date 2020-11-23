@@ -1,12 +1,12 @@
 "use strict";
 
-const ctgBooksModel = require("../models/categoriesBooks");
+const { CategoryBookModel, validatorSave, validatorUpdate } = require("../models/categoryBook");
 const { validationResult } = require("express-validator");
-const { BadRequest } = require("../common/errors");
+const { BadRequest, NotFound } = require("../common/errors");
 
 async function index(req, res, next) {
   try {
-    const ctgBooks = await ctgBooksModel.getAll();
+    const ctgBooks = await CategoryBookModel.findAll();
     res.json({
       status: "success",
       data: ctgBooks,
@@ -18,7 +18,10 @@ async function index(req, res, next) {
 
 async function show(req, res, next) {
   try {
-    const ctgBook = await ctgBooksModel.getById(req.params.id);
+    const ctgBook = await CategoryBookModel.findByPk(req.params.id);
+    if (ctgBook === null) {
+      throw new NotFound("Record not found");
+    }
     res.json({
       status: "success",
       data: ctgBook,
@@ -34,7 +37,8 @@ async function create(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const ctgBook = await ctgBooksModel.create(req.body);
+
+    const ctgBook = await CategoryBookModel.create(req.body);
     res.json({
       status: "success",
       data: ctgBook,
@@ -50,10 +54,19 @@ async function update(req, res, next) {
     if (!errors.isEmpty()) {
       throw new BadRequest(errors.array());
     }
-    const ctgBook = await ctgBooksModel.update(req.params.id, req.body);
+
+    const [numberAffectedRows, affectedRows] = await CategoryBookModel.update(
+      req.body,
+      {
+        where: {
+          id: req.params.id,
+        },
+        individualHooks: true,
+      }
+    );
     res.json({
       status: "success",
-      data: ctgBook,
+      data: affectedRows[0],
     });
   } catch (err) {
     next(err);
@@ -62,10 +75,18 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const ctgBook = await ctgBooksModel.remove(req.params.id);
+    const [numberAffectedRows, affectedRows] = await CategoryBookModel.update(
+      { status: 0 },
+      {
+        where: {
+          id: req.params.id,
+        },
+        individualHooks: true,
+      }
+    );
     res.json({
       status: "success",
-      data: ctgBook,
+      data: affectedRows[0],
     });
   } catch (err) {
     next(err);
@@ -75,9 +96,9 @@ async function remove(req, res, next) {
 module.exports = {
   index,
   show,
-  update,
   create,
+  update,
   remove,
-  validatorSave: ctgBooksModel.validatorSave,
-  validatorUpdate: ctgBooksModel.validatorUpdate,
+  validatorSave: validatorSave,
+  validatorUpdate: validatorUpdate,
 };
