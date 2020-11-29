@@ -1,5 +1,7 @@
 "use strict";
 
+const constants = require("../common/constants");
+
 class GeneralError extends Error {
   constructor(message) {
     super();
@@ -8,15 +10,15 @@ class GeneralError extends Error {
 
   getCode() {
     if (this instanceof BadRequest) {
-      return 400;
+      return constants.EXCEPTION_CODE_400;
     }
     if (this instanceof NotFound) {
-      return 404;
+      return constants.EXCEPTION_CODE_404;
     }
     if (this instanceof Unauthorized) {
-      return 401;
+      return constants.EXCEPTION_CODE_401;
     }
-    return 500;
+    return constants.EXCEPTION_CODE_500;
   }
 
   getType() {

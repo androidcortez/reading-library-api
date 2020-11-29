@@ -3,8 +3,8 @@
 const { DataTypes } = require("sequelize");
 const db = require("../config/db");
 
-const Category = db.define(
-  "Category",
+const UserType = db.define(
+  "UserType",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -12,21 +12,38 @@ const Category = db.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    name: {
-      type: DataTypes.STRING(150),
-      field: "name",
+    type: {
+      type: DataTypes.STRING(50),
+      field: "type",
       allowNull: false,
       unique: true,
       validate: {
         notNull: {
-          msg: "The name cannot be null",
+          msg: "The type cannot be null",
         },
         notEmpty: {
-          msg: "The name is required",
+          msg: "The type is required",
         },
         len: {
-          args: [0, 150],
-          msg: "The name must be maximun 150 characters",
+          args: [0, 50],
+          msg: "The type must be maximun 50 characters",
+        },
+      },
+    },
+    description: {
+      type: DataTypes.STRING(200),
+      field: "description",
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: "The description cannot be null",
+        },
+        notEmpty: {
+          msg: "The description is required",
+        },
+        len: {
+          args: [0, 200],
+          msg: "The description must be maximun 200 characters",
         },
       },
     },
@@ -68,12 +85,12 @@ const Category = db.define(
     },
   },
   {
-    tableName: "Categories",
+    tableName: "Users_Types",
     createdAt: "created_at",
     updatedAt: "updated_at",
   }
 );
 
 module.exports = {
-  Category,
+  UserType,
 };

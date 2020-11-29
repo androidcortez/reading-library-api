@@ -1,52 +1,35 @@
 "use strict";
 
-const getUTCDateTime = (function () {
-  var today = new Date();
-  var date =
-    today.getUTCFullYear() +
-    "-" +
-    (today.getUTCMonth() + 1) +
-    "-" +
-    today.getUTCDate();
-  var time =
-    today.getUTCHours() +
-    ":" +
-    today.getUTCMinutes() +
-    ":" +
-    today.getUTCSeconds();
-  var dateTime = date + " " + time;
-  return dateTime;
-})();
+const config = require("../config/config");
 
-function contentArrayInt(array) {
-  let allValuesInteger = true;
-  for (i = 0; i < array.length; i++) {
-    if (!Number.isInteger(array[i])) {
-      allValuesInteger = false;
-      break;
-    }
-  }
-  return allValuesInteger;
-}
+const generateEncryptedPassword = async (password) => {
+  const db = require("../config/db");
+  const { QueryTypes } = require("sequelize");
+  const result = await db.query("SELECT SHA1(?) as password", {
+    replacements: [password],
+    type: QueryTypes.SELECT,
+  });
+  return result[0].password;
+};
 
-function isValidDate(dateString) {
-  var regEx = /^\d{4}-\d{2}-\d{2}$/;
+const generateAccessToken = (payload) => {
+  const jwt = require("jsonwebtoken");
+  return jwt.sign(payload, config.tokenSecret, { expiresIn: "1800s" });
+};
 
-  if (!dateString.match(regEx)) {
-    return false; // Invalid format
-  }
-
-  var d = new Date(dateString);
-  var dNum = d.getTime();
-  if (!dNum && dNum !== 0) {
-    return false; // NaN value, Invalid date
-  }
-
-  return d.toISOString().slice(0, 10) === dateString;
-}
+const formatErrors = (errors) => {
+  const errorFormated = errors.map((error) => {
+    return {
+      value: error.value,
+      message: error.message,
+      param: error.path,
+    };
+  });
+  return errorFormated;
+};
 
 module.exports = {
-  getUTCDateTime,
-  contentArrayInt,
-  isValidDate
+  formatErrors,
+  generateEncryptedPassword,
+  generateAccessToken,
 };

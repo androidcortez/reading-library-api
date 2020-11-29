@@ -1,6 +1,6 @@
 CREATE TABLE `Users_Types` (
     `id` INT(11) NOT NULL AUTO_INCREMENT,
-    `type` VARCHAR(50) NOT NULL,
+    `type` VARCHAR(50) NOT NULL UNIQUE,
     `description` VARCHAR(200) NOT NULL,
     `status` INT(1) NOT NULL DEFAULT 0 COMMENT '1 = active, 0 = inactive',
     `created_at` DATETIME NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE `Users` (
 
 CREATE TABLE `Categories` (
     `id` INT NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(150) NOT NULL,
+    `name` VARCHAR(150) NOT NULL UNIQUE,
     `status` INT(1) NOT NULL DEFAULT 0 COMMENT '1 = active, 0 = inactive',
     `created_at` DATETIME NOT NULL,
     `created_by` VARCHAR(50) NOT NULL,

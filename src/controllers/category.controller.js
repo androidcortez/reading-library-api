@@ -1,12 +1,12 @@
 "use strict";
 
-const { CategoryModel, validatorSave, validatorUpdate } = require("../models/category");
-const { validationResult } = require("express-validator");
-const { BadRequest, NotFound } = require("../common/errors");
+const { Category } = require("../models/category");
+const { NotFound } = require("../common/errors");
+const constants = require("../common/constants");
 
 async function index(req, res, next) {
   try {
-    const categories = await CategoryModel.findAll();
+    const categories = await Category.findAll();
     res.json({
       status: "success",
       data: categories,
@@ -18,7 +18,7 @@ async function index(req, res, next) {
 
 async function show(req, res, next) {
   try {
-    const category = await CategoryModel.findByPk(req.params.id);
+    const category = await Category.findByPk(req.params.id);
     if (category === null) {
       throw new NotFound("Record not found");
     }
@@ -33,12 +33,7 @@ async function show(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new BadRequest(errors.array());
-    }
-
-    const category = await CategoryModel.create(req.body);
+    const category = await Category.create(req.body);
     res.json({
       status: "success",
       data: category,
@@ -50,12 +45,7 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new BadRequest(errors.array());
-    }
-
-    const [numberAffectedRows, affectedRows] = await CategoryModel.update(
+    const [numberAffectedRows, affectedRows] = await Category.update(
       req.body,
       {
         where: {
@@ -75,8 +65,8 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const [numberAffectedRows, affectedRows] = await CategoryModel.update(
-      { status: 0 },
+    const [numberAffectedRows, affectedRows] = await Category.update(
+      { status: constants.STATUS_CODE_INACTIVE },
       {
         where: {
           id: req.params.id,
@@ -99,6 +89,4 @@ module.exports = {
   create,
   update,
   remove,
-  validatorSave: validatorSave,
-  validatorUpdate: validatorUpdate,
 };

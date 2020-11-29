@@ -3,8 +3,8 @@
 const { DataTypes } = require("sequelize");
 const db = require("../config/db");
 
-const Category = db.define(
-  "Category",
+const UserBook = db.define(
+  "UserBook",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -12,21 +12,42 @@ const Category = db.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    name: {
-      type: DataTypes.STRING(150),
-      field: "name",
+    userId: {
+      type: DataTypes.INTEGER,
+      field: "user_id",
       allowNull: false,
-      unique: true,
       validate: {
         notNull: {
-          msg: "The name cannot be null",
+          msg: "The userId cannot be null",
         },
         notEmpty: {
-          msg: "The name is required",
+          msg: "The userId is required",
         },
-        len: {
-          args: [0, 150],
-          msg: "The name must be maximun 150 characters",
+      },
+    },
+    bookId: {
+      type: DataTypes.INTEGER,
+      field: "book_id",
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: "The bookId cannot be null",
+        },
+        notEmpty: {
+          msg: "The bookId is required",
+        },
+      },
+    },
+    currentPage: {
+      type: DataTypes.INTEGER,
+      field: "current_page",
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: "The currentPage cannot be null",
+        },
+        notEmpty: {
+          msg: "The currentPage is required",
         },
       },
     },
@@ -68,12 +89,12 @@ const Category = db.define(
     },
   },
   {
-    tableName: "Categories",
+    tableName: "Users_Books",
     createdAt: "created_at",
     updatedAt: "updated_at",
   }
 );
 
 module.exports = {
-  Category,
+  UserBook,
 };

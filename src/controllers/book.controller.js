@@ -1,12 +1,12 @@
 "use strict";
 
-const { BookModel, validatorSave, validatorUpdate } = require("../models/book");
-const { validationResult } = require("express-validator");
-const { BadRequest, NotFound } = require("../common/errors");
+const { Book } = require("../models/book");
+const { NotFound } = require("../common/errors");
+const constants = require("../common/constants");
 
 async function index(req, res, next) {
   try {
-    const books = await BookModel.findAll();
+    const books = await Book.findAll();
     res.json({
       status: "success",
       data: books,
@@ -18,7 +18,7 @@ async function index(req, res, next) {
 
 async function show(req, res, next) {
   try {
-    const book = await BookModel.findByPk(req.params.id);
+    const book = await Book.findByPk(req.params.id);
     if (book === null) {
       throw new NotFound("Record not found");
     }
@@ -33,12 +33,7 @@ async function show(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new BadRequest(errors.array());
-    }
-
-    const book = await BookModel.create(req.body);
+    const book = await Book.create(req.body);
     res.json({
       status: "success",
       data: book,
@@ -50,12 +45,7 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new BadRequest(errors.array());
-    }
-
-    const [numberAffectedRows, affectedRows] = await BookModel.update(
+    const [numberAffectedRows, affectedRows] = await Book.update(
       req.body,
       {
         where: {
@@ -75,8 +65,8 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const [numberAffectedRows, affectedRows] = await BookModel.update(
-      { status: 0 },
+    const [numberAffectedRows, affectedRows] = await Book.update(
+      { status: constants.STATUS_CODE_INACTIVE },
       {
         where: {
           id: req.params.id,
@@ -99,6 +89,4 @@ module.exports = {
   create,
   update,
   remove,
-  validatorSave: validatorSave,
-  validatorUpdate: validatorUpdate,
 };

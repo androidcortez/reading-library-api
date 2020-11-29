@@ -1,12 +1,12 @@
 "use strict";
 
-const { CategoryBookModel, validatorSave, validatorUpdate } = require("../models/categoryBook");
-const { validationResult } = require("express-validator");
-const { BadRequest, NotFound } = require("../common/errors");
+const { CategoryBook } = require("../models/categoryBook");
+const { NotFound } = require("../common/errors");
+const constants = require("../common/constants");
 
 async function index(req, res, next) {
   try {
-    const ctgBooks = await CategoryBookModel.findAll();
+    const ctgBooks = await CategoryBook.findAll();
     res.json({
       status: "success",
       data: ctgBooks,
@@ -18,7 +18,7 @@ async function index(req, res, next) {
 
 async function show(req, res, next) {
   try {
-    const ctgBook = await CategoryBookModel.findByPk(req.params.id);
+    const ctgBook = await CategoryBook.findByPk(req.params.id);
     if (ctgBook === null) {
       throw new NotFound("Record not found");
     }
@@ -33,12 +33,7 @@ async function show(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new BadRequest(errors.array());
-    }
-
-    const ctgBook = await CategoryBookModel.create(req.body);
+    const ctgBook = await CategoryBook.create(req.body);
     res.json({
       status: "success",
       data: ctgBook,
@@ -50,12 +45,7 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new BadRequest(errors.array());
-    }
-
-    const [numberAffectedRows, affectedRows] = await CategoryBookModel.update(
+    const [numberAffectedRows, affectedRows] = await CategoryBook.update(
       req.body,
       {
         where: {
@@ -75,8 +65,8 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const [numberAffectedRows, affectedRows] = await CategoryBookModel.update(
-      { status: 0 },
+    const [numberAffectedRows, affectedRows] = await CategoryBook.update(
+      { status: constants.STATUS_CODE_INACTIVE },
       {
         where: {
           id: req.params.id,
@@ -99,6 +89,4 @@ module.exports = {
   create,
   update,
   remove,
-  validatorSave: validatorSave,
-  validatorUpdate: validatorUpdate,
 };
