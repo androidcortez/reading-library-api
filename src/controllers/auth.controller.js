@@ -35,6 +35,7 @@ async function login(req, res, next) {
 
     user.dataValues["token"] = Util.generateAccessToken({
       username: user.username,
+      userTypeId: user.userTypeId,
       type: user.UserType.type,
     });
 

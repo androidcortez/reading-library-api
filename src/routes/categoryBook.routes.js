@@ -4,16 +4,18 @@ const express = require("express");
 const router = express.Router();
 
 const cBookController = require("../controllers/categoryBook.controller");
+const accessValidation = require("../middlewares/accessValidation");
+const tokenValidation = require("../middlewares/tokenValidation");
 
 router
   .route("/categories-books")
-  .get(cBookController.index)
-  .post(cBookController.create);
+  .get(tokenValidation, accessValidation, cBookController.index)
+  .post(tokenValidation, accessValidation, cBookController.create);
 
 router
   .route("/categories-books/:id")
-  .get(cBookController.show)
-  .put(cBookController.update)
-  .delete(cBookController.remove);
+  .get(tokenValidation, accessValidation, cBookController.show)
+  .put(tokenValidation, accessValidation, cBookController.update)
+  .delete(tokenValidation, accessValidation, cBookController.remove);
 
 module.exports = router;

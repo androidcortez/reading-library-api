@@ -21,6 +21,7 @@ CREATE TABLE `Permissions_Types` (
     `updated_at` DATETIME NOT NULL,
     `updated_by` VARCHAR(50) NOT NULL,
     PRIMARY KEY (`id`),
+    INDEX(`method`),
     FOREIGN KEY (`user_type_id`) REFERENCES `Users_Types` (`id`)
 ) ENGINE=InnoDB;
 

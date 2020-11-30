@@ -4,16 +4,18 @@ const express = require("express");
 const router = express.Router();
 
 const bookController = require("../controllers/book.controller");
+const accessValidation = require("../middlewares/accessValidation");
+const tokenValidation = require("../middlewares/tokenValidation");
 
 router
   .route("/books")
-  .get(bookController.index)
-  .post(bookController.create);
+  .get(tokenValidation, accessValidation, bookController.index)
+  .post(tokenValidation, accessValidation, bookController.create);
 
 router
   .route("/books/:id")
-  .get(bookController.show)
-  .put(bookController.update)
-  .delete(bookController.remove);
+  .get(tokenValidation, accessValidation, bookController.show)
+  .put(tokenValidation, accessValidation, bookController.update)
+  .delete(tokenValidation, accessValidation, bookController.remove);
 
 module.exports = router;

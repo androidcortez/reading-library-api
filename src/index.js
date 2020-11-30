@@ -16,7 +16,6 @@ app.get("/", (req, res) => {
   res.send('Welcome to Reading Library 📚!');
 });
 
-
 //Routes to the endpoints
 app.use(require('./routes/auth.routes'));
 app.use(require('./routes/book.routes'));
@@ -26,8 +25,9 @@ app.use(require('./routes/userBook.routes'));
 app.use(require('./routes/userFeedback.routes'));
 app.use(require('./routes/category.routes'));
 app.use(require('./routes/categoryBook.routes'));
+app.use(require('./routes/permissionType.routes'));
 
-//Middleware - After
+//Middleware to catch errors
 app.use(require('./middlewares/handleErrors'));
 
 

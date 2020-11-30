@@ -2,17 +2,20 @@
 
 const express = require("express");
 const router = express.Router();
+
 const userFeedbackController = require("../controllers/userFeedback.controller");
+const accessValidation = require("../middlewares/accessValidation");
+const tokenValidation = require("../middlewares/tokenValidation");
 
 router
   .route("/users-feedback")
-  .get(userFeedbackController.index)
-  .post(userFeedbackController.create);
+  .get(tokenValidation, accessValidation, userFeedbackController.index)
+  .post(tokenValidation, accessValidation, userFeedbackController.create);
 
 router
   .route("/users-feedback/:id")
-  .get(userFeedbackController.show)
-  .put(userFeedbackController.update)
-  .delete(userFeedbackController.remove);
+  .get(tokenValidation, accessValidation, userFeedbackController.show)
+  .put(tokenValidation, accessValidation, userFeedbackController.update)
+  .delete(tokenValidation, accessValidation, userFeedbackController.remove);
 
 module.exports = router;

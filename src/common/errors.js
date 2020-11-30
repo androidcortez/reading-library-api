@@ -18,6 +18,9 @@ class GeneralError extends Error {
     if (this instanceof Unauthorized) {
       return constants.EXCEPTION_CODE_401;
     }
+    if (this instanceof TokenRequired) {
+      return constants.EXCEPTION_CODE_499;
+    }
     return constants.EXCEPTION_CODE_500;
   }
 
@@ -31,6 +34,9 @@ class GeneralError extends Error {
     if (this instanceof Unauthorized) {
       return "UNAUTHORIZED";
     }
+    if (this instanceof TokenRequired) {
+      return "TOKEN_REQUIRED";
+    }
     return "INTERNAL_SERVER_ERROR";
   }
 }
@@ -38,10 +44,12 @@ class GeneralError extends Error {
 class BadRequest extends GeneralError {}
 class NotFound extends GeneralError {}
 class Unauthorized extends GeneralError {}
+class TokenRequired extends GeneralError {}
 
 module.exports = {
   GeneralError,
   BadRequest,
   NotFound,
   Unauthorized,
+  TokenRequired
 };
